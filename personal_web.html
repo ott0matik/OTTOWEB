@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tinkerer's Notebook</title>
+    <style>
+        :root {
+            --grid-color: rgba(0, 0, 100, 0.1);
+            --primary-color: #3498db;
+            --accent-color: #e74c3c;
+            --text-color: #2c3e50;
+            --background-color: #f9f9f9;
+            --paper-color: #ffffff;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .notebook {
+            position: relative;
+            max-width: 1200px;
+            min-height: 100vh;
+            margin: 2rem auto;
+            padding: 2rem;
+            background-color: var(--paper-color);
+            box-shadow: 0 5px 25px var(--shadow-color);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        /* Grid lines */
+        .grid-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            background-size: 20px 20px;
+            background-image:
+                linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
+                linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px);
+            z-index: 0;
+        }
+
+        /* Header */
+        header {
+            position: relative;
+            z-index: 1;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 1rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            margin: 1.5rem 0 1rem;
+            color: var(--primary-color);
+            position: relative;
+            z-index: 1;
+        }
+
+        header p {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            opacity: 0.8;
+        }
+
+        /* Navigation */
+        nav {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            justify-content: flex-start;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .tab {
+            padding: 0.5rem 1rem;
+            margin-right: 0.5rem;
+            background-color: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: var(--text-color);
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .tab:hover {
+            border-bottom: 2px solid var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .tab.active {
+            border-bottom: 2px solid var(--accent-color);
+            color: var(--accent-color);
+        }
+
+        /* Content sections */
+        section {
+            position: relative;
+            z-index: 1;
+            display: none;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        section.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Projects cards */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .project-card {
+            background-color: rgba(255, 255, 255, 0.7);
+            border: 1px solid var(--grid-color);
+            border-radius: 5px;
+            padding: 1.5rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            z-index: 2;
+        }
+
+        .project-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px var(--shadow-color);
+        }
+
+        .project-card h3 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            font-size: 1.2rem;
+        }
+
+        .project-card p {
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .project-card .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .tag {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 3px;
+            font-size: 0.8rem;
+        }
+
+        /* Skills section */
+        .skills-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .skill-category {
+            position: relative;
+            z-index: 2;
+            background-color: rgba(255, 255, 255, 0.7);
+            border: 1px solid var(--grid-color);
+            border-radius: 5px;
+            padding: 1.5rem;
+        }
+
+        .skill-category h3 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .skill-item {
+            margin-bottom: 0.8rem;
+        }
+
+        .skill-name {
+            margin-bottom: 0.3rem;
+            font-weight: 600;
+        }
+
+        .skill-bar {
+            height: 8px;
+            background-color: var(--grid-color);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .skill-level {
+            height: 100%;
+            background-color: var(--primary-color);
+            border-radius: 4px;
+            width: 0;
+            transition: width 1s ease;
+        }
+
+        /* Courses section */
+        .courses-list {
+            margin-top: 1.5rem;
+        }
+
+        .course-item {
+            position: relative;
+            z-index: 2;
+            background-color: rgba(255, 255, 255, 0.7);
+            border: 1px solid var(--grid-color);
+            border-radius: 5px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: transform 0.3s ease;
+        }
+
+        .course-item:hover {
+            transform: translateX(5px);
+        }
+
+        .course-item h3 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            font-size: 1.2rem;
+        }
+
+        .course-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: rgba(44, 62, 80, 0.7);
+        }
+
+        /* Resume section */
+        #resume {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .resume-section {
+            margin-bottom: 2rem;
+        }
+
+        .resume-section h3 {
+            color: var(--primary-color);
+            border-bottom: 1px solid var(--grid-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .resume-item {
+            margin-bottom: 1.5rem;
+        }
+
+        .resume-item h4 {
+            margin-bottom: 0.3rem;
+        }
+
+        .resume-item .period {
+            font-style: italic;
+            color: rgba(44, 62, 80, 0.7);
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .resume-item ul {
+            margin-left: 1.5rem;
+        }
+
+        /* Responsiveness */
+        @media (max-width: 768px) {
+            .notebook {
+                margin: 0;
+                padding: 1rem;
+                border-radius: 0;
+                box-shadow: none;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            h2 {
+                font-size: 1.5rem;
+            }
+
+            .projects-grid, .skills-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* For animations */
+        .hidden {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .fade-in {
+            animation: fadeIn 0.8s forwards;
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Handwritten style elements */
+        .handwritten {
+            font-family: 'Caveat', cursive;
+        }
+
+        .note {
+            position: relative;
+            padding: 1rem;
+            margin: 1rem 0;
+            background-color: rgba(255, 255, 0, 0.1);
+            border-left: 3px solid var(--accent-color);
+            font-family: 'Caveat', cursive;
+            font-size: 1.2rem;
+            line-height: 1.4;
+        }
+
+        /* Doodle decoration */
+        .doodle {
+            position: absolute;
+            opacity: 0.1;
+            z-index: 0;
+        }
+
+        .doodle-1 {
+            bottom: 10%;
+            right: 5%;
+            transform: rotate(15deg);
+        }
+
+        .doodle-2 {
+            top: 20%;
+            left: 5%;
+            transform: rotate(-10deg);
+        }
+    </style>
+</head>
+<body>
+    <div class="notebook">
+        <div class="grid-background"></div>
+        
+        <!-- Decorative elements -->
+        <svg class="doodle doodle-1" width="100" height="100" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="40" stroke="black" stroke-width="2" fill="none"/>
+            <circle cx="30" cy="40" r="5" fill="black"/>
+            <circle cx="70" cy="40" r="5" fill="black"/>
+            <path d="M 30 70 Q 50 80 70 70" stroke="black" stroke-width="2" fill="none"/>
+        </svg>
+        
+        <svg class="doodle doodle-2" width="150" height="150" viewBox="0 0 150 150">
+            <path d="M20,20 Q40,5 60,20 T100,20" stroke="black" stroke-width="2" fill="none"/>
+            <path d="M20,40 Q40,25 60,40 T100,40" stroke="black" stroke-width="2" fill="none"/>
+            <path d="M20,60 Q40,45 60,60 T100,60" stroke="black" stroke-width="2" fill="none"/>
+            <path d="M20,80 Q40,65 60,80 T100,80" stroke="black" stroke-width="2" fill="none"/>
+        </svg>
+        
+        <header>
+            <h1>The Tinkerer's Notebook</h1>
+            <p>A collection of projects, skills, and explorations</p>
+        </header>
+        
+        <nav>
+            <button class="tab active" data-tab="projects">Projects</button>
+            <button class="tab" data-tab="skills">Skills</button>
+            <button class="tab" data-tab="courses">Courses</button>
+            <button class="tab" data-tab="resume">Resume</button>
+        </nav>
+        
+        <!-- Projects Section -->
+        <section id="projects" class="active">
+            <h2>Projects</h2>
+            <div class="note">These are some of my favorite things I've built...</div>
+            
+            <div class="projects-grid">
+                <div class="project-card hidden">
+                    <h3>Smart Home Dashboard</h3>
+                    <p>A customizable IoT control interface built with React and connected to a Raspberry Pi backend.</p>
+                    <div class="tags">
+                        <span class="tag">React</span>
+                        <span class="tag">IoT</span>
+                        <span class="tag">Raspberry Pi</span>
+                    </div>
+                </div>
+                
+                <div class="project-card hidden">
+                    <h3>Weather Forecasting API</h3>
+                    <p>Machine learning model that predicts local weather patterns based on historical data.</p>
+                    <div class="tags">
+                        <span class="tag">Python</span>
+                        <span class="tag">Machine Learning</span>
+                        <span class="tag">API</span>
+                    </div>
+                </div>
+                
+                <div class="project-card hidden">
+                    <h3>Budget Tracker</h3>
+                    <p>Mobile app for tracking expenses and creating visual spending reports.</p>
+                    <div class="tags">
+                        <span class="tag">Flutter</span>
+                        <span class="tag">Firebase</span>
+                        <span class="tag">Mobile</span>
+                    </div>
+                </div>
+                
+                <div class="project-card hidden">
+                    <h3>Keyboard From Scratch</h3>
+                    <p>Custom mechanical keyboard with 3D-printed case and custom firmware.</p>
+                    <div class="tags">
+                        <span class="tag">Hardware</span>
+                        <span class="tag">3D Printing</span>
+                        <span class="tag">Firmware</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Skills Section -->
+        <section id="skills">
+            <h2>Skills</h2>
+            <div class="note">Here's what I know and how well I know it...</div>
+            
+            <div class="skills-container">
+                <div class="skill-category hidden">
+                    <h3>Programming</h3>
+                    
+                    <div class="skill-item">
+                        <div class="skill-name">JavaScript</div>
+                        <div class="skill-bar">
+                            <div class="skill-level" data-level="90"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="skill-item">
+                        <div class="skill-name">Python</div>
+                        <div class="skill-bar">
+                            <div class="skill-level" data-level="85"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="skill-item">
+                        <div class="skill-name">C++</div>
+                        <div class="skill-bar">
+                            <div class="skill-level" data-level="70"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="skill-item">
+                        <div class="skill-name">SQL</div>
+                        <div class="skill-bar">
+                            <div class="skill-level" data-level="75"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="skill-category hidden">
+                    <h3>Web Development</h3>
+                    
+                    <div class="skill-item">
+                        <div class="skill-name">HTML/CSS</div>
+                        <div class="skill-bar">
+                            <div class="skill-level" data-level="95"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="skill-item">
+                        <div class="skill-name">React</div>
+                        <div class="skill-bar">
+                            <div class="skill-level" data-level="85"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="skill-item">
+                        <div class="skill-name">Node.js</div>
+                        <div class="skill-bar">
+                            <div class="skill-level" data-level="80"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="skill-item">
+                        <div class="skill-name">UI/UX Design</div>
+                        <div class="skill-bar">
+                            <div class="skill-level" data-level="70"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="skill-category hidden">
+                    <h3>Hardware & Embedded</h3>
+                    
+                    <div class="skill-item">
+                        <div class="skill-name">Arduino</div>
+                        <div class="skill-bar">
+                            <div class="skill-level" data-level="90"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="skill-item">
+                        <div class="skill-name">Raspberry Pi</div>
+                        <div class="skill-bar">
+                            <div class="skill-level" data-level="85"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="skill-item">
+                        <div class="skill-name">Circuit Design</div>
+                        <div class="skill-bar">
+                            <div class="skill-level" data-level="75"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="skill-item">
+                        <div class="skill-name">3D Printing</div>
+                        <div class="skill-bar">
+                            <div class="skill-level" data-level="80"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Courses Section -->
+        <section id="courses">
+            <h2>Courses & Certifications</h2>
+            <div class="note">Always learning something new...</div>
+            
+            <div class="courses-list">
+                <div class="course-item hidden">
+                    <h3>Machine Learning Specialization</h3>
+                    <div class="course-info">
+                        <span>Stanford University (Coursera)</span>
+                        <span>Completed: March 2024</span>
+                    </div>
+                    <p>Comprehensive introduction to machine learning, data mining, and statistical pattern recognition.</p>
+                </div>
+                
+                <div class="course-item hidden">
+                    <h3>Full Stack Web Development</h3>
+                    <div class="course-info">
+                        <span>The Odin Project</span>
+                        <span>Completed: January 2024</span>
+                    </div>
+                    <p>Practical web development from HTML/CSS basics to full stack React and Node applications.</p>
+                </div>
+                
+                <div class="course-item hidden">
+                    <h3>Embedded Systems Programming</h3>
+                    <div class="course-info">
+                        <span>edX (University of Texas)</span>
+                        <span>Completed: November 2023</span>
+                    </div>
+                    <p>Programming microcontrollers and designing embedded systems for IoT applications.</p>
+                </div>
+                
+                <div class="course-item hidden">
+                    <h3>Advanced CSS and Sass</h3>
+                    <div class="course-info">
+                        <span>Udemy</span>
+                        <span>Completed: September 2023</span>
+                    </div>
+                    <p>Modern CSS techniques, animations, layouts, and responsive design patterns.</p>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Resume Section -->
+        <section id="resume">
+            <h2>Resume</h2>
+            <div class="note">The formal stuff...</div>
+            
+            <div class="resume-section hidden">
+                <h3>Education</h3>
+                
+                <div class="resume-item">
+                    <h4>B.S. in Computer Science</h4>
+                    <div class="period">University of Tech, 2018-2022</div>
+                    <p>Specialized in software engineering and computer systems. Minor in Electronics.</p>
+                </div>
+                
+                <div class="resume-item">
+                    <h4>Associate's Degree in Electronics Technology</h4>
+                    <div class="period">Community Technical College, 2016-2018</div>
+                    <p>Focused on circuit design and embedded systems programming.</p>
+                </div>
+            </div>
+            
+            <div class="resume-section hidden">
+                <h3>Work Experience</h3>
+                
+                <div class="resume-item">
+                    <h4>Software Developer</h4>
+                    <div class="period">Tech Solutions Inc., 2022-Present</div>
+                    <p>Developing web applications and IoT solutions for various clients.</p>
+                    <ul>
+                        <li>Implemented responsive front-end interfaces using React</li>
+                        <li>Developed RESTful APIs with Node.js and Express</li>
+                        <li>Created IoT solutions for smart home applications</li>
+                    </ul>
+                </div>
+                
+                <div class="resume-item">
+                    <h4>Electronics Technician Intern</h4>
+                    <div class="period">Innovative Hardware Co., Summer 2021</div>
+                    <p>Assisted in the development and testing of consumer electronics prototypes.</p>
+                    <ul>
+                        <li>Designed circuit boards for prototype devices</li>
+                        <li>Wrote firmware for microcontroller-based systems</li>
+                        <li>Conducted quality assurance testing on hardware products</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="resume-section hidden">
+                <h3>Contact & Links</h3>
+                
+                <div class="resume-item">
+                    <p><strong>Email:</strong> your.email@example.com</p>
+                    <p><strong>GitHub:</strong> github.com/yourusername</p>
+                    <p><strong>LinkedIn:</strong> linkedin.com/in/yourprofile</p>
+                    <p><strong>Portfolio:</strong> yourportfolio.com</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Tab switching functionality
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active class from all tabs
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                // Add active class to clicked tab
+                tab.classList.add('active');
+                
+                // Hide all sections
+                document.querySelectorAll('section').forEach(section => {
+                    section.classList.remove('active');
+                });
+                
+                // Show the corresponding section
+                const tabId = tab.getAttribute('data-tab');
+                document.getElementById(tabId).classList.add('active');
+                
+                // Animate hidden elements within the active section
+                animateElements();
+            });
+        });
+        
+        // Function to animate elements when they become visible
+        function animateElements() {
+            const activeSection = document.querySelector('section.active');
+            const hiddenElements = activeSection.querySelectorAll('.hidden');
+            
+            hiddenElements.forEach((element, index) => {
+                setTimeout(() => {
+                    element.classList.add('fade-in');
+                }, index * 100);
+            });
+            
+            // Animate skill bars in skills section
+            if (activeSection.id === 'skills') {
+                setTimeout(() => {
+                    const skillLevels = activeSection.querySelectorAll('.skill-level');
+                    skillLevels.forEach(skill => {
+                        const level = skill.getAttribute('data-level');
+                        skill.style.width = `${level}%`;
+                    });
+                }, 300);
+            }
+        }
+        
+        // Initialize animation on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Load Google fonts
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Roboto:wght@300;400;500;700&display=swap';
+            document.head.appendChild(link);
+            
+            // Initial animation
+            animateElements();
+            
+            // Add interactive hover effect to project cards
+            document.querySelectorAll('.project-card').forEach(card => {
+                card.addEventListener('mouseenter', () => {
+                    const randomRotation = Math.random() * 2 - 1; // Random value between -1 and 1
+                    card.style.transform = `translateY(-5px) rotate(${randomRotation}deg)`;
+                });
+                
+                card.addEventListener('mouseleave', () => {
+                    card.style.transform = '';
+                });
+            });
+        });
+    </script>
+</body>
+</html>
